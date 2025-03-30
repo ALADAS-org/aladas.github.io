@@ -1,2 +1,2 @@
 # aladas.github.io
-aladas-org(@cryptoshape demo
+aladas-org@cryptoshape demo

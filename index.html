@@ -1,12 +1,161 @@
-<!-- index.html -->
 <!DOCTYPE html>
-   <html lang="fr">
-   <head>
-       <meta charset="UTF-8">
-       <meta name="viewport" content="width=device-width, initial-scale=1.0">
-       <title>Bienvenue</title>
-   </head>
-   <body>
-       <h1>Bienvenue sur mon site GitHub Pages !</h1>
-   </body>
+<html>
+    <head>
+        <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+        <title>Cryptoshape 0.0.32</title>
+		
+		<link rel="stylesheet" type="text/css" href="./css/styles.css">		
+
+		<script type="text/javascript" src="lib/jquery-3.6.3.min.js"></script>
+		
+		<!-- https://doc.babylonjs.com/setup/frameworkPackages/CDN -->
+		<script type="text/javascript" src="lib/babylon.js"></script>
+		<script type="text/javascript" src="lib/babylon.gui.min.js"></script>
+		<script type="text/javascript" src="lib/babylon.glTF2Serializer.min.js"></script>
+        
+		<script type="text/javascript" src="src/fonts.js"></script>
+		<script type="text/javascript" src="src/wordlist/wordlist_en.js"></script>
+
+		<script type="text/javascript" src="src/const_gui.js"></script>
+		<script type="text/javascript" src="src/const_params.js"></script>
+		<script type="text/javascript" src="src/const_args.js"></script>
+
+		<script type="text/javascript" src="src/mnemonic_utils.js"></script>
+		<script type="text/javascript" src="src/geometry_utils.js"></script> 
+
+		<script type="text/javascript" src="src/color.js"></script>
+		<script type="text/javascript" src="src/materials.js"></script>
+		<script type="text/javascript" src="src/theme_manager.js"></script>
+
+		<script type="text/javascript" src="src/vizmodes/const_vizmodes.js"></script>		
+
+		<script type="text/javascript" src="src/shapes/shape_utils.js"></script> 
+		
+		<script type="text/javascript" src="src/shapes/base_shape.js"></script> 
+		<script type="text/javascript" src="src/shapes/ball_shape.js"></script>
+		<script type="text/javascript" src="src/shapes/cube_shape.js"></script>
+		<script type="text/javascript" src="src/shapes/arc_shape.js"></script>
+		<script type="text/javascript" src="src/shapes/mnemonic_shape.js"></script>
+		<script type="text/javascript" src="src/shapes/cylinder_shape.js"></script>
+		<script type="text/javascript" src="src/shapes/polyhedron_shape.js"></script>
+
+		<script type="text/javascript" src="src/reps/base_rep.js"></script>
+		<script type="text/javascript" src="src/reps/node_rep.js"></script>
+		<script type="text/javascript" src="src/reps/link_rep.js"></script>
+
+		<script type="text/javascript" src="src/vizmodes/base_vizmode.js"></script>
+		<script type="text/javascript" src="src/vizmodes/arc_vizmode.js"></script>
+		<script type="text/javascript" src="src/vizmodes/coronavirus_vizmode.js"></script>
+		<script type="text/javascript" src="src/vizmodes/helical_virus_vizmode.js"></script>
+		<script type="text/javascript" src="src/vizmodes/simple_vizmode.js"></script>
+		<script type="text/javascript" src="src/vizmodes/pin_vizmode.js"></script>
+		<script type="text/javascript" src="src/vizmodes/blockchain_vizmode.js"></script>
+
+		<script type="text/javascript" src="src/seedphrase.js"></script>
+    </head>
+<body>
+    <div class="Toolbar" id="toolbar">
+		<!-- ========== 'Actions' container ========== -->
+		&nbsp;&nbsp;&nbsp;<span class="OptionsContainer">&nbsp;
+			<span class="OptionsContainerTitle">Actions &gt;&nbsp;</span>	
+		    <span>&nbsp;</span>
+			<button id="generate_btn_id" type="button" onClick="onGenerate()">Generate</button>
+
+			<span>&nbsp;</span>
+			<button id="save_btn_id" type="button" onClick="onSave()">Save</button>
+			<select id="file_format_id" onchange="onParameterChange('file_format')">
+				<option value="glb" selected>glb</option> 
+				<option value="png" >png</option>	
+			</select>
+
+			<span>&nbsp;</span>
+			<button id="animate_btn_id" type="button" onClick="onAnimate()">Animate</button>		
+		</span>
+		<!-- ========== 'Actions' container -->
+
+		<!-- ========== 'Mode' container ========== -->
+		&nbsp;&nbsp;&nbsp;<span class="OptionsContainer">&nbsp;
+			<span class="OptionsContainerTitle">Mode &gt;&nbsp;</span>	
+			<select id="mode_id" onkeydown="disableKey(event)">
+				<option value="arc" selected>arc</option> 
+				<option value="centroid" >centroid</option> 				
+				<option value="stair step">stair step</option>
+				<option value="simple">simple</option>
+				<option value="pin">pin</option>
+				<option value="blockchain">blockchain</option>
+				<option value="coronavirus">coronavirus</option>
+				<option value="helical virus">helical virus</option>
+			</select>
+		</span>
+		<!-- ========== 'Mode' container -->
+		
+		<!-- ========== 'Options' container ========== -->
+		&nbsp;&nbsp;&nbsp;<span class="OptionsContainer">&nbsp;
+		    <span class="OptionsContainerTitle">Options &gt;</span>	
+			
+			<span>&nbsp;</span><span>Filled</span>
+			<input id="filled_triangles_id" type="checkbox" onChange="onParameterChange('filled_triangles')">
+			
+			<!-- <span>&nbsp;&nbsp;</span><span>Metadata</span> ->
+			<!-- <input id="metadata_id" type="checkbox" onChange="onParameterChange('metadata')" checked> ->
+
+			<!-- <span>&nbsp;&nbsp;</span><span>Debug</span> -->
+			<!-- <input class="ShowHideOptionsCheckBox" -->
+			<!--	   id="debug_id" type="checkbox" onChange="onParameterChange('debug')">&nbsp; -->
+		</span>	
+		<!-- ========== 'Options' container -->
+		
+		<!-- ========== 'Show' container ========== -->
+		<!-- &nbsp;&nbsp;&nbsp;<span class="OptionsContainer">&nbsp; -->
+		<!--    <span class="OptionsContainerTitle">Show &gt;&nbsp;</span> -->
+
+		<!--	<span>&nbsp;&nbsp;</span><span>Centroid</span> -->
+		<!--	<input class="ShowHideOptionsCheckBox" id="show_centroid_id" type="checkbox" onChange="onParameterChange('show_centroid')"> -->
+
+		<!--	<span>&nbsp;&nbsp;</span><span>Box</span> -->
+		<!--	<input class="ShowHideOptionsCheckBox" id="show_bounding_box_id" type="checkbox" onChange="onParameterChange('show_bounding_box')" checked>	--> 		
+        <!-- </span> -->
+		<!-- ========== 'Show' container -->
+
+		<!-- ========== 'Theme' container ========== -->
+		&nbsp;&nbsp;&nbsp;<span class="OptionsContainer">&nbsp;
+			<span class="OptionsContainerTitle">Theme &gt;&nbsp;</span>	
+			<select id="theme_id" onChange="onParameterChange('theme')">
+				<option value="screen" selected>screen</option> 
+				<option value="print">print</option>
+				<option value="export">export</option>
+			</select>
+		</span>
+		<!-- ========== 'Theme' container -->		
+
+		<div class="Mnemonics_container">
+			<span>&nbsp;&nbsp;</span>
+			<span class="OptionTitle">Words</span>
+			<select id="word_count_id" onChange="onParameterChange('word_count')">
+				<option value="12" selected>12</option> 
+				<option value="15">15</option> 
+				<option value="18">18</option> 
+				<option value="21">21</option> 
+				<option value="24">24</option>
+			</select>
+			<span>&nbsp;<img src="icons/edit_16px_w.png" id="editMnemonicsIcon" 
+			                 onClick="onMnemonicsEditMode()"></span>
+			
+			<span>
+				<span class="Mnemonics" id="mnemonics_id"></span>
+				<span id="mnemonics_input_container_id" hidden>
+					&nbsp;<input class="MnemonicsInputField" 
+					             id="mnemonics_input_id" type="text" maxlength="250"/>
+					<button type="button" onClick="onApplyMnemonicsChange()">Apply</button>
+					<button type="button" onClick="onCancelMnemonicsChange()">Cancel</button>
+				</span>				
+			</span>
+		</div>
+	</div>
+	
+    <div id="canvasZone"><canvas id="renderCanvas"></canvas></div>
+	
+    <script type="text/javascript" src="./src/renderer.js"></script>
+	<!-- <script type="module" src="./src/renderer.js"></script> -->
+	</body>
 </html>
