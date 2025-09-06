@@ -165,7 +165,7 @@ class Renderer {
 		let mnemonic_count = mnemonic_items.length;
 		if (   mnemonic_count >= 12 
 		    && (    mnemonic_count == 12 || mnemonic_count == 15 || mnemonic_count == 18 
-			     || mnemonic_count == 21 || mnemonic_count == 25)  ) {
+			     || mnemonic_count == 21 || mnemonic_count == 24)  ) {
 			this.updateCGIMode( true );
 			this.main_word_indexes = MnemonicUtils.MnemonicsToWordIndexes( mnemonics_str );
 			console.log('> this.main_word_indexes (CGI): ' + this.main_word_indexes);
