@@ -28,7 +28,7 @@ class ShapeUtils {
 
     static CreatePolyline( arg_points, args ) {
 		// console.log(">> createPolyline");
-        let renderer = Renderer.GetInstance();
+        let renderer = Renderer.This;
 		let polyline_color = THEMES[renderer.getParameter(THEME_PARAM)][LINK_COLOR][0];
 		// console.log("   polyline_color: " + polyline_color);
 	
@@ -46,7 +46,7 @@ class ShapeUtils {
 	} // ShapeUtils.CreatePolyline()
 
     static CreateTruncatedIcosahedron() {
-        let renderer = Renderer.GetInstance();
+        let renderer = Renderer.This;
         let scene = renderer.getScene();       
 
         let options = { m:1, n: 1, size: .5 };
@@ -56,7 +56,7 @@ class ShapeUtils {
     } // ShapeUtils.CreateTruncatedIcosahedron()
 
     static DrawPoint( position, color, point_diameter ) {	
-        let renderer = Renderer.GetInstance();
+        let renderer = Renderer.This;
         color          = ( color != undefined) ? color : GREEN;
         point_diameter = ( point_diameter != undefined) ? point_diameter : .035; // 0.05
 
@@ -72,7 +72,7 @@ class ShapeUtils {
     } // ShapeUtils.DrawPoint()
 
     static DrawLine( p0, p1, color ) {
-        let renderer = Renderer.GetInstance();        
+        let renderer = Renderer.This;        
         color = ( color != undefined) ? color : GREY_75;
         
         let line_vizject = BABYLON.MeshBuilder.CreateLines
@@ -86,7 +86,7 @@ class ShapeUtils {
     } // ShapeUtils.DrawLine()
 
     static DrawTriangle( p0, p1, p2, color ) {
-        let renderer = Renderer.GetInstance();        
+        let renderer = Renderer.This;        
         color = ( color != undefined) ? color : ORANGE;
 
         let triangle_vizject = BABYLON.MeshBuilder.CreateLines
@@ -100,7 +100,7 @@ class ShapeUtils {
     } // ShapeUtils.DrawTriangle()
 
     static DrawCircle( center, radius, color ) {
-        let renderer = Renderer.GetInstance();        
+        let renderer = Renderer.This;        
         color = ( color != undefined) ? color : ORANGE;
         
         let p0 = GeometryUtils.ComputePolarPoint2D( radius,     Math.PI/4, center );
@@ -213,7 +213,7 @@ class ShapeUtils {
     } // ShapeUtils.MinimizeVertices()
 
     static DrawCircleFrom3Points( p0, p1, p2, color, thickness ) {
-        let renderer = Renderer.GetInstance();        
+        let renderer = Renderer.This;        
         color = ( color != undefined) ? color : ORANGE;  
         
         let edge_rendering = false;
@@ -241,7 +241,7 @@ class ShapeUtils {
     } // ShapeUtils.DrawCircleFrom3Points()
 
     static DrawSphereBox( radius ) {	
-        let renderer = Renderer.GetInstance();
+        let renderer = Renderer.This;
         if ( radius == undefined ) sphere_radius = 1.55; // X_SCALING_FACTOR * STEP / 2;
 
         let sphere_mesh = BABYLON.MeshBuilder.CreateSphere
@@ -256,7 +256,7 @@ class ShapeUtils {
             VIZMODE_ORIGIN = vizmode.getOrigin();
         }
         console.log(">> ShapeUtils.DrawCustomCubeWireframe");
-        let renderer = Renderer.GetInstance();
+        let renderer = Renderer.This;
 
         let square_mesh = undefined;
 
@@ -335,7 +335,7 @@ class ShapeUtils {
             console.log("ShapeUtils.DrawCubeBox: options[ORIGIN_ARG]\n" + JSON.stringify(options[ORIGIN_ARG]));
         }
 
-        let renderer = Renderer.GetInstance();
+        let renderer = Renderer.This;
         let cube_box = undefined;
 
         //let cube_ref = BABYLON.Mesh.CreateBox( "cube_ref", 1, renderer.getScene() );
@@ -396,7 +396,7 @@ class ShapeUtils {
 
     static DrawSpring( data ) {
         // 'data' fields: 'scale_xz', 'scale_y', 'tube_radius', 'range', 'helix_pitch', 'steps_count' 
-		let renderer = Renderer.GetInstance();
+		let renderer = Renderer.This;
         let scene = renderer.getScene();
 		
 		if ( data == undefined ) data = {};
@@ -452,7 +452,7 @@ class ShapeUtils {
         let dot_size = 0.007; // 0.025;
         let dot_mesh = undefined;
 
-        let renderer = Renderer.GetInstance();
+        let renderer = Renderer.This;
         let ball_color = THEMES[renderer.getParameter(THEME_PARAM)][NODE_COLOR][0];
     
         for ( y=start; y < end; y+= step ) {
@@ -463,7 +463,7 @@ class ShapeUtils {
 
                     let data = { [MATERIAL_ARG] : MATERIALS[ball_color], [ORIGIN_ARG]: dot_position, 
                                  [SIZE_ARG]: dot_size, [ARGS_ARG]: { "shape": [SPHERE_DOT] } };
-                    let dot_shape = new BallShape( Renderer.GetInstance(), data ); 
+                    let dot_shape = new BallShape( Renderer.This, data ); 
                     dot_shape.draw();
                     // scene_objects.push( dot_mesh );
                 }

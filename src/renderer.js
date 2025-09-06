@@ -15,12 +15,13 @@ const SPHERE_DOT = "Sphere";
 const canvas = document.getElementById("renderCanvas");
 
 const MODE_NAME_TO_CLASS = { 
-	[ARC_VIZMODE]: ArcVizMode,
-	[CORONAVIRUS_VIZMODE]: CoronaVirusVizMode, 
+	[ARC_VIZMODE]:           ArcVizMode,
+	[CORONAVIRUS_VIZMODE]:   CoronaVirusVizMode, 
 	[HELICAL_VIRUS_VIZMODE]: HelicalVirusVizMode,
-	[PIN_VIZMODE]: PinVizMode,
-	[BLOCKCHAIN_VIZMODE]: BlockchainVizMode,
-	[SIMPLE_VIZMODE]: SimpleVizMode  
+	[PIN_VIZMODE]:           PinVizMode,
+	[BLOCKCHAIN_VIZMODE]:    BlockchainVizMode,
+	[SIMPLE_VIZMODE]:        SimpleVizMode,
+	[CENTROID_VIZMODE]:      CentroidVizMode	
 }; // MODE_NAME_TO_CLASS
 
 let PreventRecursiveEventCall = false;
@@ -30,9 +31,8 @@ let SelectedMnemonic = "";
 
 const SHOW_MNEMONICS  = "Show Mnemonics";
 const INPUT_MNEMONICS = "Input Mnemonics";
-let MnemonicsMode = SHOW_MNEMONICS;
 
-let MainWordIndexes = [];
+let MnemonicsMode = SHOW_MNEMONICS;
 
 // https://forum.babylonjs.com/t/how-to-build-animation-for-arcrotatecamera-so-it-can-rotate-smoothly/25698/4
 // https://playground.babylonjs.com/#U5SSCN#169
@@ -54,23 +54,46 @@ BABYLON.ArcRotateCamera.prototype.spinTo = function (whichprop, targetval, speed
 
 // ============================== Renderer class ==============================
 class Renderer {	
-	static #Key          = Symbol('Renderer');
-	static #Singleton    = new Renderer( Renderer.#Key );
-	static #Scene        = undefined;
-	static #SceneObjects = [];
+	static #Key           = Symbol('Renderer');
+	static #Singleton     = new Renderer( Renderer.#Key );
+	static #InstanceCount = 0;
+	
+	static #Scene         = undefined;
+	static #SceneObjects  = [];
 
-	static GetInstance() {	
-		return Renderer.#Singleton;
-	} // Renderer.GetInstance()
-
+	static get This() {
+		if( Renderer.#Singleton == undefined ) {
+			this.#Singleton = new Renderer();
+			if (this.#InstanceCount > 0) {
+				throw new TypeError("'Renderer' constructor called more than once");
+			}
+			this.#InstanceCount++;
+        }
+        return Renderer.#Singleton;
+    } // Renderer 'This' getter
+	
+	get main_word_indexes() {
+		// console.log("> GET 'main_word_indexes': '" + this._main_word_indexes + "'");
+        return this._main_word_indexes;
+    } // 'main_word_indexes' getter
+	
+	set main_word_indexes( value ) {
+		// console.log("> SET 'main_word_indexes': '" + value + "'");
+        this._main_word_indexes = value;
+    } // 'main_word_indexes' setter
+	
 	constructor( instance_key ) {
 		// console.log(">> ---- Renderer.new instance_key: " + String(instance_key));
 		if ( instance_key != Renderer.#Key ) {	
-			throw new Error("**Error** in Renderer: private constructor use Renderer.GetInstance()");
+			throw new Error("**Error** in Renderer: private constructor use Renderer.This");
 		} 	
 		// console.log(">> ---- new Renderer");
 
 		this.seedphrase = new SeedPhrase( this );
+		
+		this.cgi_mode = false;
+		
+		this._main_word_indexes = [];
 
         this.scene = undefined;
 		this.scene_objects = [];
@@ -79,6 +102,7 @@ class Renderer {
 		this.parameters[THEME_PARAM]             = SCREEN_THEME;
 
 		this.viz_mode = ARC_VIZMODE;
+		
 		this.parameters[MODE_PARAM]              = this.viz_mode;
 		this.parameters[WORD_COUNT_PARAM]        = 12;
 
@@ -116,6 +140,74 @@ class Renderer {
 		this.camera.spinTo("alpha", 6.75*Math.PI/4, speed);	
 		// console.log("  renderer.getCamera().alpha): " + this.camera.alpha );
 	} // animateCamera()
+	
+	getUrlParams() {
+		console.log("> getUrlParams");
+		
+		// https://www.sitepoint.com/get-url-parameters-with-javascript/
+		const query_string = window.location.search;
+		// console.log("> query_string: " + query_string);
+		if ( query_string == "" ) {
+			// console.log("> getUrlParams: NO Query String");
+			return;
+		}
+		
+		const url_params = new URLSearchParams(query_string);
+		const mnemonics_str = url_params.get('mnemonics');
+		if (mnemonics_str == null || mnemonics_str == undefined) {
+			return;
+		}
+		// console.log("> mnemonics_str: " + mnemonics_str);
+		
+		let mnemonic_items = mnemonics_str.split(' ');
+		console.log('> mnemonics(' + mnemonic_items.length + '): ' + mnemonic_items.join(' ')); 
+		
+		let mnemonic_count = mnemonic_items.length;
+		if (   mnemonic_count >= 12 
+		    && (    mnemonic_count == 12 || mnemonic_count == 15 || mnemonic_count == 18 
+			     || mnemonic_count == 21 || mnemonic_count == 25)  ) {
+			this.updateCGIMode( true );
+			this.main_word_indexes = MnemonicUtils.MnemonicsToWordIndexes( mnemonics_str );
+			console.log('> this.main_word_indexes (CGI): ' + this.main_word_indexes);
+			Renderer.This.displayMnemonics( this.main_word_indexes );
+		}
+	} // getUrlParams()
+	
+	updateCGIMode( value ) {
+		console.log("> updateCGIMode");
+		this.cgi_mode = value;
+		
+		if ( this.cgi_mode ) {
+			HtmlUtils.HideNode('toolbar');
+			HtmlUtils.ShowNode('toolbar_cgi_id');
+		}
+	} // updateCGIMode()
+	
+	displayMnemonics( word_indexes ) {
+		console.log("> displayMnemonics");		
+		if ( word_indexes != undefined && word_indexes.length >= 12 ) {
+			let mnemonics_elt = document.getElementById( 'mnemonics_id' );
+			// console.log("> mnemonics_elt: " + mnemonics_elt);
+			if ( mnemonics_elt == undefined ) return;
+			
+			let mnemonics = MnemonicUtils.WordIndexesToMemonics( word_indexes );
+			let mnemonics_str = "";
+			for ( let i=0; i< mnemonics.length; i++ ) {
+				let mnemonic = mnemonics[i];
+				let text_color = "#d0d0d0";
+				if ( mnemonic == SelectedMnemonic ) {
+					text_color = "cyan";
+				}
+				mnemonics_str += '<span style="color: ' + text_color + '">' + mnemonic + "&nbsp;&nbsp;"+ "</span>";
+			}
+			mnemonics_elt.innerHTML = "&nbsp;&nbsp;&nbsp;&nbsp;"+ mnemonics_str; 
+			
+			let mnemonics_cgi_elt = document.getElementById( 'mnemonics_cgi_id' );
+			// console.log("> mnemonics_cgi_elt: " + mnemonics_cgi_elt);
+			if ( mnemonics_cgi_elt == undefined ) return;
+			mnemonics_cgi_elt.innerHTML = "&nbsp;&nbsp;&nbsp;&nbsp;"+ mnemonics_str;
+		}
+	} // displayMnemonics()
 
 	// ==================== Create Scene ==================== 
 	createScene() {
@@ -132,7 +224,7 @@ class Renderer {
 		
 		// https://doc.babylonjs.com/typedoc/classes/BABYLON.PickingInfo#hit
 		const onPointerDown = (evt) => {
-			var pickInfo = scene.pick( this.scene.pointerX, this.scene.pointerY, function (mesh) {
+			let pickInfo = scene.pick( this.scene.pointerX, this.scene.pointerY, function (mesh) {
 				return true;
 			}, false, this.camera);
 
@@ -176,8 +268,11 @@ class Renderer {
 		
 		Materials.CreateMaterials( this.scene );
 
-		MainWordIndexes = getRandomWordIndexes( this.parameters[WORD_COUNT_PARAM] );
-
+		// console.log(">> this.main_word_indexes: '" + this.main_word_indexes + "'");
+		if ( this.main_word_indexes == [] || this.main_word_indexes == '' || this.main_word_indexes == undefined ) {
+			this.main_word_indexes = getRandomWordIndexes( this.parameters[WORD_COUNT_PARAM] );
+		}
+		
 		// ---------- GUI ----------
 		let advancedTexture = BABYLON.GUI.AdvancedDynamicTexture.CreateFullscreenUI("UI");
 
@@ -229,9 +324,9 @@ class Renderer {
 		this.scene.clearColor = Color.AsVec3( background_color );
 
 		let viz_mode = this.parameters[MODE_PARAM];
-		// console.log("   viz_mode: " + viz_mode);
+		console.log("   viz_mode: " + viz_mode);
 		if ( MODE_NAME_TO_CLASS[viz_mode] != undefined ) {
-			this.viz_mode = new MODE_NAME_TO_CLASS[viz_mode]( this, MainWordIndexes );
+			this.viz_mode = new MODE_NAME_TO_CLASS[viz_mode]( this, this.main_word_indexes );
 			this.viz_mode.draw();
 			return;
 		}
@@ -261,7 +356,7 @@ class Renderer {
 		}
 		// ---------- Filled Triangles mode
 		
-		this.seedphrase.draw( MainWordIndexes, 
+		this.seedphrase.draw( this.main_word_indexes, 
 			{ "closed_triangles": closed_mode, "filled_triangles": filled_mode } );	
 	} // drawScene()
 
@@ -287,7 +382,7 @@ class Renderer {
 		}
 		
 		if ( event_name == WORD_COUNT_PARAM ) {
-			MainWordIndexes = getRandomWordIndexes( this.parameters[ WORD_COUNT_PARAM ] ); 
+			this.main_word_indexes = getRandomWordIndexes( this.parameters[ WORD_COUNT_PARAM ] ); 
 		}
 		else if ( event_name == MODE_PARAM ) {			
 			this.parameters[ MODE_PARAM ] = elt.value;
@@ -325,7 +420,23 @@ class Renderer {
 				// NB: to prevent ficus on 'mode_id' which prevents 'A' key to trigger 'animateCamera'
 				document.getElementById(ANIMATION_BTN_ID).focus();
 			} ); 
-		// ---------- THEME_ID 
+		// ---------- MODE_ID 
+		
+		// ---------- MODE_CGI_ID ----------
+		this.setEventHandler( MODE_CGI_ID, 'change', 
+			(evt) => { 
+				console.log( "Renderer.evtHandler> " + MODE_CGI_ID );
+				let elt = document.getElementById(MODE_CGI_ID);
+				this.parameters[MODE_PARAM] = elt.value;
+				console.log( "   this.parameters[MODE_PARAM]: " + elt.value );
+
+				this.clearScene();
+				this.drawScene();
+
+				// NB: to prevent ficus on 'mode_id' which prevents 'A' key to trigger 'animateCamera'
+				document.getElementById(ANIMATION_BTN_ID).focus();
+			} ); 
+		// ---------- MODE_CGI_ID 
 
 		// ---------- Camera Animation on 'body' ----------
 		document.body.addEventListener( 'keypress', (evt) => {
@@ -430,23 +541,6 @@ const createTriangleMesh = ( mesh_material, scene, positions ) => {
 	return triangle_mesh;
 }; // createTriangleMesh()
 
-const displayMnemonics = ( word_indexes ) => { 	
-	if ( word_indexes != undefined && word_indexes.length >= 12 ) {
-		let elt = document.getElementById( 'mnemonics_id' );
-		let mnemonics = MnemonicUtils.WordIndexesToMemonics( word_indexes );
-		let mnemonics_str = "";
-		for ( let i=0; i< mnemonics.length; i++ ) {
-			let mnemonic = mnemonics[i];
-			let text_color = "#d0d0d0";
-			if ( mnemonic == SelectedMnemonic ) {
-				text_color = "cyan";
-			}
-			mnemonics_str += '<span style="color: ' + text_color + '">' + mnemonic + "&nbsp;&nbsp;"+ "</span>";
-		}
-		elt.innerHTML = "&nbsp;&nbsp;&nbsp;&nbsp;"+ mnemonics_str; 
-	}
-}; // displayMnemonics ()
-
 const displaySelectedNode = ( mesh ) => { 
 	if ( mesh.metadata != undefined ) {
 		// dot_mesh.metadata = { "gltf": { "mnemonic": mnemonic, "word_index": word_index } };
@@ -462,12 +556,12 @@ const displaySelectedNode = ( mesh ) => {
 		SelectedMnemonic = mnemonic;
 		SelectedGUIMnemonicNode.text = mnemonic;
 
-		displayMnemonics( MainWordIndexes );
+		Renderer.This.displayMnemonics( this.main_word_indexes );
 	}	
 }; // displaySelectedNode ()
 
 const getRandomWordIndexes = ( index_count ) => {
-	// console.log("> **** getRandomWordIndexes " + index_count );
+	console.log("> **** getRandomWordIndexes " + index_count );
 	if ( index_count == undefined ) {
 		index_count = 24;
 	}
@@ -484,8 +578,8 @@ const getRandomWordIndexes = ( index_count ) => {
 
 	SelectedMnemonic = MnemonicUtils.WordIndexToMnemonic( random_indexes[0] );
 
-	MainWordIndexes = random_indexes;
-	displayMnemonics( MainWordIndexes );
+	this.main_word_indexes = random_indexes;
+	Renderer.This.displayMnemonics( this.main_word_indexes );
 	
 	return random_indexes;
 }; // getRandomWordIndexes()
@@ -518,17 +612,16 @@ const disableKey = ( evt ) => {
 
 const onGenerate = ( evt ) => {	
 	console.log(">> *** onGenerate ");
-	let renderer = Renderer.GetInstance();
-	MainWordIndexes = getRandomWordIndexes( renderer.getParameter(WORD_COUNT_PARAM) );	
-
-	renderer.clearScene();
-	renderer.drawScene();
+	// console.log(">> *** onGenerate main_word_indexes: '" + Renderer.This.main_word_indexes + "'");
+	Renderer.This.main_word_indexes = getRandomWordIndexes( Renderer.This.getParameter(WORD_COUNT_PARAM) );	
+	Renderer.This.clearScene();
+	Renderer.This.drawScene();
 }; // onGenerate()
 
 // https://doc.babylonjs.com/features/featuresDeepDive/Exporters/glTFExporter
 function onSave( evt ) {	
 	console.log(">> *** onSave ");
-	let renderer = Renderer.GetInstance();
+	let renderer = Renderer.This;
 	let file_format = renderer.getParameter( FILE_FORMAT_PARAM );
 	console.log("onSave file_format: " + file_format);
 	switch ( file_format ) {
@@ -547,8 +640,7 @@ function onSave( evt ) {
 
 function onAnimate() {	
 	console.log(">> *** onAnimate ");
-	let renderer = Renderer.GetInstance();
-    renderer.animateCamera();	
+    Renderer.This.animateCamera();	
 } // onAnimate()
 
 const onMnemonicsEditMode = () => {
@@ -563,7 +655,6 @@ const onMnemonicsEditMode = () => {
 
 const onApplyMnemonicsChange = () => {
 	console.log(">> *** onApplyMnemonicsChange ");
-	let renderer = Renderer.GetInstance();
 	if ( MnemonicsMode == INPUT_MNEMONICS ) {
 		$("#mnemonics_id").show();
 		$("#editMnemonicsIcon").show();
@@ -578,14 +669,14 @@ const onApplyMnemonicsChange = () => {
 		console.log("   mnemonics length: '" + mnemonics_count + "'");
 
 		document.getElementById(WORD_COUNT_ID).value = mnemonics_count;
-		renderer.setParameter(WORD_COUNT_PARAM, mnemonics_count);
+		Renderer.This.setParameter(WORD_COUNT_PARAM, mnemonics_count);
 
 		let word_indexes = MnemonicUtils.MnemonicsToWordIndexes( mnemonics);
 
-		MainWordIndexes = word_indexes;
-		displayMnemonics( MainWordIndexes );
-		renderer.clearScene();
-		renderer.drawScene();		
+		Renderer.This.main_word_indexes = word_indexes;
+		Renderer.This.displayMnemonics( Renderer.This.main_word_indexes );
+		Renderer.This.clearScene();
+		Renderer.This.drawScene();		
 	}
 }; // onApplyMnemonicsChange()
 
@@ -598,40 +689,39 @@ const onCancelMnemonicsChange = () => {
 
 const onParameterChange = ( name ) => {	
 	console.log(">> *** onParameterChange " + name);
-	let renderer = Renderer.GetInstance();
 
 	let elt = document.getElementById( name + "_id" );
 	// console.log("   elt.nodeName: " + elt.nodeName);
 	if ( elt.nodeName == "INPUT" && elt.type === 'checkbox') {
-		renderer.setParameter( name, elt.checked);
+		Renderer.This.setParameter( name, elt.checked);
 	}
 	else if ( elt.nodeName == "SELECT" ) {
-		renderer.setParameter( name, elt.value);
-		console.log("   renderer.parameters[" + name + "]: " + renderer.getParameter(name) );
+		Renderer.This.setParameter( name, elt.value);
+		console.log("   Renderer.This.parameters[" + name + "]: " + Renderer.This.getParameter(name) );
 	}
 	
 	if ( name == WORD_COUNT_PARAM ) {
-		MainWordIndexes = getRandomWordIndexes( renderer.getParameter(WORD_COUNT_PARAM) ); 
+		Renderer.This.main_word_indexes = getRandomWordIndexes( Renderer.This.getParameter(WORD_COUNT_PARAM) ); 
 	}
 	else if ( name == MODE_PARAM ) {			
-		renderer.setParameter(MODE_PARAM, elt.value);
+		Renderer.This.setParameter(MODE_PARAM, elt.value);
 	}
 
-	renderer.clearScene();
-	renderer.drawScene();
+	Renderer.This.clearScene();
+	Renderer.This.drawScene();
 }; // onParameterChange()
 
 const onClosedChange = ( data ) => {	
 	let elt = document.getElementById("closed_id");
-	let renderer = Renderer.GetInstance();
 	ClosedTrianglesMode = elt.checked;
 	console.log(">> *** onClosedChange " + ClosedTrianglesMode);
-	renderer.clearScene();
-	renderer.drawScene();
+	Renderer.This.clearScene();
+	Renderer.This.drawScene();
 }; // onClosedChange()
 
 window.initFunction = async () => {
 	console.log(">> --- window.initFunction");
+	
 	let asyncEngineCreation = async () => {
 		try {
 			return createDefaultEngine();
@@ -647,7 +737,10 @@ window.initFunction = async () => {
     if ( ! engine ) throw 'engine should not be null.';
 
     startRenderLoop( engine, canvas );
-	window.scene = Renderer.GetInstance().createScene();
+	
+	Renderer.This.getUrlParams();
+	
+	window.scene = Renderer.This.createScene();
 }; // window.initFunction()
 	
 initFunction().then(

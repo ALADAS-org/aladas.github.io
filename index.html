@@ -42,12 +42,15 @@
 		<script type="text/javascript" src="src/reps/base_rep.js"></script>
 		<script type="text/javascript" src="src/reps/node_rep.js"></script>
 		<script type="text/javascript" src="src/reps/link_rep.js"></script>
+		
+		<script type="text/javascript" src="src/html_utils.js"></script> 
 
 		<script type="text/javascript" src="src/vizmodes/base_vizmode.js"></script>
 		<script type="text/javascript" src="src/vizmodes/arc_vizmode.js"></script>
 		<script type="text/javascript" src="src/vizmodes/coronavirus_vizmode.js"></script>
 		<script type="text/javascript" src="src/vizmodes/helical_virus_vizmode.js"></script>
 		<script type="text/javascript" src="src/vizmodes/simple_vizmode.js"></script>
+		<script type="text/javascript" src="src/vizmodes/centroid_vizmode.js"></script>
 		<script type="text/javascript" src="src/vizmodes/pin_vizmode.js"></script>
 		<script type="text/javascript" src="src/vizmodes/blockchain_vizmode.js"></script>
 
@@ -151,11 +154,31 @@
 				</span>				
 			</span>
 		</div>
-	</div>
+	</div> <!-- toolbar -->
+	
+	
+	<div id="toolbar_cgi_id" hidden>
+		<!-- ========== 'Mode' container ========== -->		
+		<span class="OptionsContainer">&nbsp;
+		    <span id="cgi_mode_title_id">Mode&nbsp;</span>
+			<select id="mode_cgi_id" onkeydown="disableKey(event)">
+				<option value="arc" selected>arc</option> 
+				<option value="centroid" >centroid</option> 				
+				<option value="stair step">stair step</option>
+				<option value="simple">simple</option>
+				<option value="pin">pin</option>
+				<option value="blockchain">blockchain</option>
+				<option value="coronavirus">coronavirus</option>
+				<option value="helical virus">helical virus</option>
+			</select>
+		</span>
+		<!-- ========== 'Mode' container -->
+		<center><span class="Mnemonics" id="mnemonics_cgi_id"></span></center>
+	</div> <!-- toolbar_cgi_id -->
 	
     <div id="canvasZone"><canvas id="renderCanvas"></canvas></div>
 	
     <script type="text/javascript" src="./src/renderer.js"></script>
-	<!-- <script type="module" src="./src/renderer.js"></script> -->
+
 	</body>
 </html>

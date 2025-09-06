@@ -32,13 +32,13 @@ class Materials {
 
         // https://www.babylonjs-playground.com/#7HZISY#0
         // https://doc.babylonjs.com/resources/transparency_and_how_meshes_are_rendered
-        let alphamat = new BABYLON.StandardMaterial( 'alphamat', Renderer.GetInstance().getScene() );
+        let alphamat = new BABYLON.StandardMaterial( 'alphamat', Renderer.This.getScene() );
             alphamat.diffuseColor  = BABYLON.Color3.Blue();
             alphamat.emissiveColor = new BABYLON.Color3(.5, .4, .5); // not necessary artistic decision
             alphamat.alpha = 0.065;
         MATERIALS[ALPHA_MAT] = alphamat;
 
-        let alphamat_2 = new BABYLON.StandardMaterial( 'alphamat_2', Renderer.GetInstance().getScene() );
+        let alphamat_2 = new BABYLON.StandardMaterial( 'alphamat_2', Renderer.This.getScene() );
             alphamat_2.diffuseColor  = Color.AsVec3(CYAN);
             alphamat_2.emissiveColor = Color.AsVec3(CYAN); 
             alphamat_2.alpha = 0.1;

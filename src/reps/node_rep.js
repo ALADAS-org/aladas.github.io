@@ -6,22 +6,43 @@
 // ============================== NodeRep class ==============================
 class NodeRep extends BaseRep {
 	constructor( vizmode, word_indexes, node_number, data ) {
-        super( vizmode, word_indexes, data );      
+        super( vizmode, word_indexes, data );   
 
-        this.node_number = node_number;
-        this.word_index  = this.word_indexes[this.node_number];       
-        
-        let use_scaling_factor = (this.vizmode.getCoordinatesSystem() == CARTESIAN_COORDINATES);
-        // console.log(">> NodeRep.computePosition  use_scaling_factor: " + use_scaling_factor);
-        this.word_point  = GeometryUtils.WordIndexToVector3( this.word_index, use_scaling_factor );
+		this.theta       = -1;
+		this.phi         = -1;	
 
-        this.theta       = -1;
-        this.phi         = -1;
+		this.centroid_mode = false;	
 
-        this.position    = this.computePosition(GeometryUtils.GetRadius());
+		if ( word_indexes == [] && node_number == -1 ) {
+			// console.log(">> NodeRep.computePosition  CENTROID");
+			this.centroid_mode  = true;
+			
+			this.node_number    = 0;
+			this.word_index     = 0;	
+			// this.centroid_point	= data;	
+			this.centroid_point	= BABYLON.Vector3.Zero();
+			
+			this.centroid_point.x = START + STEP * 8;
+			this.centroid_point.y = START + STEP * 8;
+			this.centroid_point.z = START + STEP * 8;
+			
+			this.point_normal_phi = BABYLON.Vector3.Zero();			
+			this.word_point       = BABYLON.Vector3.Zero();
+			this.position         = this.computePosition( GeometryUtils.GetRadius() );
+		}		
+		else {
+			this.node_number = node_number;
+			this.word_index  = this.word_indexes[this.node_number];       
+			
+			let use_scaling_factor = (this.vizmode.getCoordinatesSystem() == CARTESIAN_COORDINATES);
+			// console.log(">> NodeRep.computePosition  use_scaling_factor: " + use_scaling_factor);
+			this.word_point  = GeometryUtils.WordIndexToVector3( this.word_index, use_scaling_factor );
 
-        this.point_normal_theta = BABYLON.Vector3.Zero();
-        this.point_normal_phi   = BABYLON.Vector3.Zero();        
+			this.position    = this.computePosition(GeometryUtils.GetRadius());
+
+			this.point_normal_theta = BABYLON.Vector3.Zero();
+			this.point_normal_phi   = BABYLON.Vector3.Zero();    
+		}			
     } // constructor
 
     getPoints() {
@@ -80,18 +101,16 @@ class NodeRep extends BaseRep {
         let pos_z = 0;
 
         if ( this.coordinates_system == CARTESIAN_COORDINATES ) {
-            let vizmode_origin = this.vizmode.getOrigin();
-            let start_x = vizmode_origin.x;
-            //pos_x = START + STEP * this.word_point.x; // x = [0..15]
-            pos_x = start_x + STEP * this.word_point.x; // x = [0..15]
-
-            let start_y = vizmode_origin.y;
-            //pos_y = START + STEP * this.word_point.y; // y = [0..15]
-            pos_y = start_y + STEP * this.word_point.y; // y = [0..15]
-
-            let start_z = vizmode_origin.z;
-            // pos_z = START + STEP * this.word_point.z; // z = [0..15]
-            pos_z = start_z + STEP * this.word_point.z; // z = [0..15]
+			if ( this.centroid_mode ) {
+				pos_x = this.centroid_point.x;
+				pos_y = this.centroid_point.y;
+				pos_z = this.centroid_point.z;
+			}
+			else {	
+				pos_x = START + STEP * this.word_point.x; // x = [0..15]
+				pos_y = START + STEP * this.word_point.y; // y = [0..15]
+				pos_z = START + STEP * this.word_point.z; // z = [0..15]
+			}
         }
         else if ( this.coordinates_system == SPHERICAL_COORDINATES ) {
             // https://stackoverflow.com/questions/10085069/polar-coordinates-of-a-vector-in-three-dimensional-space#:~:text=But%2C%20for%203D%20polar%2C%20a,z%2Daxis%20to%20the%20radius.
@@ -161,7 +180,7 @@ class NodeRep extends BaseRep {
         else if (this.node_shape == NODE_SHAPE_SPHERE) {
             data[PARENT_REP_ARG] = this;
             data[MATERIAL_ARG]   = MATERIALS[GREY_50];
-            data[SIZE_ARG]       = 0.07;            
+            data[SIZE_ARG]       = 0.07;                
             this.shape = new BallShape( this.renderer, data );
         }
         else { // NODE_SHAPE_ISOCAHEDRON

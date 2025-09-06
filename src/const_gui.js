@@ -5,6 +5,7 @@
 
 const THEME_ID          = "theme_id";
 const MODE_ID           = "mode_id";
+const MODE_CGI_ID       = "mode_cgi_id";
 const ANIMATION_BTN_ID  = "animate_btn_id";
 
 const WORD_COUNT_ID     = "word_count_id";
