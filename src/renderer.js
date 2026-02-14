@@ -18,6 +18,7 @@ const MODE_NAME_TO_CLASS = {
 	[ARC_VIZMODE]:           ArcVizMode,
 	[CORONAVIRUS_VIZMODE]:   CoronaVirusVizMode, 
 	[HELICAL_VIRUS_VIZMODE]: HelicalVirusVizMode,
+	[QBIT_VIZMODE]:          QBitVizMode,
 	[PIN_VIZMODE]:           PinVizMode,
 	[BLOCKCHAIN_VIZMODE]:    BlockchainVizMode,
 	[SIMPLE_VIZMODE]:        SimpleVizMode,

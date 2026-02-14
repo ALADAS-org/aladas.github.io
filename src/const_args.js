@@ -7,6 +7,7 @@ const ID_ARG                  = "id";
 const PARENT_REP_ARG          = "parent_rep";
 const ORIGIN_ARG              = "origin";
 const SIZE_ARG                = "size";
+const RADIUS_ARG              = "radius";
 const COLOR_ARG               = "color";
 const MATERIAL_ARG            = "material";
 const VIZMODE_ARG             = "vizmode";

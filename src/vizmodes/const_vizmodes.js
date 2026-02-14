@@ -12,6 +12,8 @@ const CORONAVIRUS_VIZMODE   = "coronavirus";
 const HELICAL_VIRUS_VIZMODE = "helical virus";
 const PIN_VIZMODE           = "pin";
 
+const QBIT_VIZMODE          = "Qbit";
+
 const BLOCKCHAIN_VIZMODE    = "blockchain";
 
 // const PLANET_MODE       = "planet";

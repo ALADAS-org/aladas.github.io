@@ -10,6 +10,12 @@ class NodeRep extends BaseRep {
 
 		this.theta       = -1;
 		this.phi         = -1;	
+		
+        this.data = ( data != undefined ) ? data : {}; 
+		
+        this.id = ( this.data[ID_ARG] != undefined ) ? this.data[ID_ARG] : "";		
+		
+        this.radius = ( this.data[RADIUS_ARG] != undefined ) ? this.data[RADIUS_ARG] : GeometryUtils.GetRadius();		
 
 		this.centroid_mode = false;	
 
@@ -27,8 +33,9 @@ class NodeRep extends BaseRep {
 			this.centroid_point.z = START + STEP * 8;
 			
 			this.point_normal_phi = BABYLON.Vector3.Zero();			
-			this.word_point       = BABYLON.Vector3.Zero();
-			this.position         = this.computePosition( GeometryUtils.GetRadius() );
+			this.word_point       = BABYLON.Vector3.Zero();		
+			
+			this.position = this.computePosition( this.radius );
 		}		
 		else {
 			this.node_number = node_number;
@@ -38,7 +45,7 @@ class NodeRep extends BaseRep {
 			// console.log(">> NodeRep.computePosition  use_scaling_factor: " + use_scaling_factor);
 			this.word_point  = GeometryUtils.WordIndexToVector3( this.word_index, use_scaling_factor );
 
-			this.position    = this.computePosition(GeometryUtils.GetRadius());
+			this.position = this.computePosition(this.radius);
 
 			this.point_normal_theta = BABYLON.Vector3.Zero();
 			this.point_normal_phi   = BABYLON.Vector3.Zero();    
@@ -89,7 +96,8 @@ class NodeRep extends BaseRep {
             if ( this.coordinates_system == CYLINDRICAL_COORDINATES ) {
                 radius = STEP * this.word_point.x * X_SCALING_FACTOR * CYLINDER_SCALE;
             }
-            else radius = GeometryUtils.GetRadius();
+            // else radius = GeometryUtils.GetRadius();
+			else this.radius;
         }  
         
         // if ( log == undefined ) {
@@ -155,10 +163,10 @@ class NodeRep extends BaseRep {
 
         if ( this.coordinates_system == SPHERICAL_COORDINATES ) {
              // NB: "required" Side effect
-            this.position = this.computePosition(GeometryUtils.GetRadius() * SPHERICAL_RADIUS_SCALE);
+            this.position = this.computePosition(this.radius * SPHERICAL_RADIUS_SCALE);
         }
         else if ( this.coordinates_system == CYLINDRICAL_COORDINATES ) {
-            this.position = this.computePosition(GeometryUtils.GetRadius() * CYLINDRICAL_RADIUS_SCALE);
+            this.position = this.computePosition(this.radius * CYLINDRICAL_RADIUS_SCALE);
         }
 
         let data = { [ORIGIN_ARG]: this.position  };
