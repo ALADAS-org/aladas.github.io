@@ -77,7 +77,7 @@ class QBitVizMode extends BaseVizMode {
 				// Création du matériau semi-transparent gris clair
 				let qbit_material = new BABYLON.StandardMaterial("qbitMaterial", scene);
 				qbit_material.diffuseColor = new BABYLON.Color3( 0.96, 0.96, 0.86 ); // Gris clair
-				qbit_material.alpha = 0.35; // Semi-transparent (0 = invisible, 1 = opaque)
+				qbit_material.alpha = 0.20; // Semi-transparent (0 = invisible, 1 = opaque)
 
 				// Application du matériau à la sphère
 				core_shape.material = qbit_material;
@@ -97,11 +97,11 @@ class QBitVizMode extends BaseVizMode {
 	
 	display3DAxes() {
 		// Fonction pour créer une flèche
-		const create_arrow = (name, direction, color, size = 3) => {
+		const create_arrow = (name, direction, color, size = 1.5) => {
 			const origin = BABYLON.Vector3.Zero();
 			
 			let stick_thickness = 0.03;
-			let stick_length    = 0.72;
+			let stick_length    = 0.5;
 			
 			const axis_stick = BABYLON.MeshBuilder.CreateCylinder(name + "Stick", {
 				height:   stick_length,
@@ -113,9 +113,9 @@ class QBitVizMode extends BaseVizMode {
 			
 			const axis_cone = BABYLON.MeshBuilder.CreateCylinder
                 ( name+ "Cone", 
-				  { "height":         0.3, 
+				  { "height":         0.2, 
 				    "diameterTop":    0, 
-					"diameterBottom": 0.15 }, this.renderer.getScene());
+					"diameterBottom": 0.11 }, this.renderer.getScene());
                 axis_cone.position = axis_stick.position;     
 
             axis_cone.lookAt( axis_stick.position );
@@ -124,8 +124,8 @@ class QBitVizMode extends BaseVizMode {
 			this.renderer.addObject( axis_cone );			
 			
 			// Positionner la flèche
-			axis_stick.position = direction.clone().scale(size * 0.12);
-			axis_cone.position  = direction.clone().scale(size * 0.285);
+			axis_stick.position = direction.clone().scale(size * 0.16);
+			axis_cone.position  = direction.clone().scale(size * 0.31);
 			
 			// Orienter la flèche
 			const quaternion = BABYLON.Quaternion.FromUnitVectorsToRef(
@@ -212,6 +212,60 @@ class QBitVizMode extends BaseVizMode {
             this.node_reps.push( node_rep );
         }
     } // createNodes()
+	
+	drawPoles() {
+		let scene = this.renderer.getScene();
+		
+        // --------------------   North Pole (|0⟩)   --------------------
+        const north_pole = BABYLON.MeshBuilder.CreateSphere("north-pole", { diameter: 0.2 }, scene);
+		this.renderer.addObject( north_pole );
+		
+        north_pole.position = new BABYLON.Vector3(0, 1, 0);
+        north_pole.material = new BABYLON.StandardMaterial("north-Mat", scene);
+		north_pole.material.diffuseColor  = new BABYLON.Color3(0, 0, 1); // Blue
+        north_pole.material.emissiveColor = new BABYLON.Color3(0, 0, 1); // Blue
+
+        // Texte |0⟩
+        const north_label = BABYLON.MeshBuilder.CreatePlane("north-text", { size: 0.4 }, scene);
+		north_label.position = new BABYLON.Vector3(0.0, 1.2, 0.0);
+		this.renderer.addObject( north_label );
+		
+        const north_texture  = new BABYLON.DynamicTexture("northTexture", { width: 128, height: 128 }, scene);
+        north_texture.drawText("|0⟩", 33, 70, "bold 50px Arial", "white", "transparent", true);
+        north_label.material = new BABYLON.StandardMaterial("northTextMat", scene);
+		
+        north_label.material.diffuseTexture = north_texture;
+        north_label.material.backFaceCulling = false;
+        north_label.material.emissiveColor   = new BABYLON.Color3(1, 1, 1);
+        north_label.material.diffuseTexture.hasAlpha = true;
+        north_label.billboardMode = BABYLON.Mesh.BILLBOARDMODE_ALL;
+		// --------------------   North Pole (|0⟩)
+
+
+        // --------------------   South Pole (|1⟩)   --------------------
+        const south_pole = BABYLON.MeshBuilder.CreateSphere("south-pole", { diameter: 0.2 }, scene);
+		this.renderer.addObject( south_pole );
+		
+        south_pole.position = new BABYLON.Vector3(0, -1, 0);
+        south_pole.material = new BABYLON.StandardMaterial("southMat", scene);
+        south_pole.material.diffuseColor  = new BABYLON.Color3(1, 0, 0); // Red
+        south_pole.material.emissiveColor = new BABYLON.Color3(1, 0, 0); // Red
+
+        // Texte |1⟩
+        const south_label = BABYLON.MeshBuilder.CreatePlane("south-text", { size: 0.4 }, scene);
+		this.renderer.addObject( south_label );
+		
+		south_label.position = new BABYLON.Vector3(0, -1.25, 0);
+        const south_texture = new BABYLON.DynamicTexture("southTexture", { width: 128, height: 128 }, scene);
+        south_texture.drawText("|1⟩", 33, 70, "bold 50px Arial", "white", "transparent", true);
+        south_label.material = new BABYLON.StandardMaterial("southTextMat", scene);
+        south_label.material.diffuseTexture = south_texture;
+        south_label.material.backFaceCulling = false;
+        south_label.material.emissiveColor = new BABYLON.Color3(1, 1, 1);
+        south_label.material.diffuseTexture.hasAlpha = true;
+        south_label.billboardMode = BABYLON.Mesh.BILLBOARDMODE_ALL;
+		// --------------------   South Pole (|1⟩)   --------------------
+	} // drawPoles()
 
     drawNodes() {
         console.log(">> QBitVizMode.drawNodes");
@@ -228,6 +282,8 @@ class QBitVizMode extends BaseVizMode {
     draw() {
         console.log(">> QBitVizMode.draw");
         this.drawBoundings();
+		this.drawPoles()
+		
         this.createNodes();
         this.drawCore();
         this.drawNodes();
